@@ -1,0 +1,15 @@
+{
+  "host": "sadfasd-Inspiron-16-5645",
+  "tag": "015c54a7cf26300c2cae21acd7f0316ab72d027ee2f871973250d5ebdecb1c91",
+  "videos": {
+    "cold": "d19805ead64f5f6d23d631c0c0b2e4ef405338a1574af63a5ed53255e24dab3c",
+    "hot": "0c095642a4a9bc2a6f75e693234b7cd439194dac9753e61032b47e36441c14dc",
+    "rt": "cef88df814dba7e7a385179ab49ea4f96bc072db05f47da625f83596dca86b93"
+  },
+  "k": {
+    "cold": 0.0055485810055389065,
+    "hot": 0.02856186515525423,
+    "rt": 0.007362673706782517
+  },
+  "Ea": 32779.08571470552
+}
