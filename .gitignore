@@ -1,0 +1,46 @@
+# 비밀키 / 파이썬
+.env
+.venv/
+__pycache__/
+*.pyc
+
+# 실험 데이터 — 원본 영상, 추출 프레임
+data/
+
+# 측정 결과 — CSV, 그래프, 오버레이, 서명 기록
+results/
+
+# 보고서 / 사진 / 예전 작업
+report/
+photos/
+archive/
+
+# 확장자로 한 번 더 막기
+*.mp4
+*.MP4
+*.mov
+*.MOV
+*.m4v
+*.avi
+*.mkv
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.hwp
+*.hwpx
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.xls
+*.xlsx
+*.pdf
+*.csv
+
+# 배포 폴더 — 서명키가 pyc 에 들어 있다
+/dist/
+
+# 제출 zip, 작업 폴더
+submit_*.zip
+grading/
