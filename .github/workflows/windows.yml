@@ -2,11 +2,9 @@
 # 영상은 release "testdata" 의 자산에서 받는다 (gh release create testdata data/raw/*.mp4).
 name: windows
 
+# ci 브랜치에만 있다. 돌리기: gh workflow run windows.yml --ref ci
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: ["src/**", "run.py", "run.bat", "requirements.txt", "ci/**", ".github/workflows/windows.yml"]
 
 jobs:
   run:
@@ -14,6 +12,10 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: ci 브랜치의 기준값·워크플로만 가져오기
+        run: git fetch -q origin ci && git checkout origin/ci -- ci
 
       - uses: actions/setup-python@v5
         with:
