@@ -1,59 +1,119 @@
-# Windows 러너에서 처음부터 끝까지 돌려 내 PC 값(ci/reference.json)과 ±4% 안에 드는지 본다.
-# 영상은 release "testdata" 의 자산에서 받는다 (gh release create testdata data/raw/*.mp4).
+# 조원 PC 흉내: 한글·공백 경로, .env 없음(bin/*.pyc 내장 키), run.bat 그대로, clips.json BOM.
+# 영상은 release "ci-testdata-enc" 의 암호화 자산 + secret CI_DATA_PASS 로 푼다.
+# 결과 zip(프레임 포함)은 같은 키로 암호화해 artifact 로 올린다. 채점은 내 PC 에서 tools/grade.py.
+# 돌리기: gh workflow run windows.yml --ref ci
 name: windows
 
-# ci 브랜치에만 있다. 돌리기: gh workflow run windows.yml --ref ci
 on:
   workflow_dispatch:
 
 jobs:
   run:
     runs-on: windows-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: powershell
+    env:
+      W: C:\Users\runneradmin\바탕 화면\rateCV
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
-      - name: ci 브랜치의 기준값·워크플로만 가져오기
-        run: git fetch -q origin ci && git checkout origin/ci -- ci
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: ffmpeg
+      - name: ffmpeg (조원과 같은 gyan 판)
         run: choco install ffmpeg -y --no-progress
 
-      - name: 영상 받기 (release testdata)
+      - name: 한글·공백 경로로 복사
+        run: |
+          New-Item -ItemType Directory -Force "$env:W" | Out-Null
+          Copy-Item -Recurse -Force * "$env:W"
+          Get-ChildItem "$env:W"
+
+      - name: 영상 받기·풀기
         env:
           GH_TOKEN: ${{ github.token }}
+          PASS: ${{ secrets.CI_DATA_PASS }}
         run: |
-          gh release download testdata -D data/raw -p "*.mp4"
-          Get-ChildItem data/raw
+          gh release download ci-testdata-enc -D enc -p "*.enc"
+          if ($LASTEXITCODE) { exit 1 }
+          $ossl = @("C:\Program Files\Git\usr\bin\openssl.exe", "C:\Program Files\OpenSSL\bin\openssl.exe", "C:\Program Files\Git\mingw64\bin\openssl.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          & $ossl version
+          New-Item -ItemType Directory -Force "$env:W\data\raw" | Out-Null
+          Get-ChildItem enc\*.enc | ForEach-Object {
+            & $ossl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in $_.FullName -out ("enc\" + $_.BaseName) -pass env:PASS
+            if ($LASTEXITCODE) { exit 1 }
+            Move-Item ("enc\" + $_.BaseName) "$env:W\data\raw\"
+          }
+          Get-ChildItem "$env:W\data\raw"
 
-      - name: 서명키 (임시)
-        run: python -c "import secrets,pathlib;pathlib.Path('.env').write_text('MFOAM_PROV_KEY='+secrets.token_hex(32)+'\n')"
-
-      - name: 패키지
-        run: python -m pip install -q -r requirements.txt
-
-      - name: run.py
-        run: python run.py --no-video
-
-      - name: 내 PC 값과 비교
+      - name: clips.json (PowerShell 5 는 BOM 을 붙인다)
         run: |
-          Copy-Item ci/reference.json results/reference.json
-          python src/verify.py
+          $team = "3" + [char]0xC870
+          '{"team": "' + $team + '", "clips": {"cold": {"stem": "20260824_142918", "T_C": 14.2}, "rt": {"stem": "20260824_144012", "T_C": 27.2}, "hot": {"stem": "20260824_142727", "T_C": 54.7}}}' | Set-Content -Encoding utf8 "$env:W\data\raw\clips.json"
+          Format-Hex "$env:W\data\raw\clips.json" | Select-Object -First 1
 
-      - name: summary
+      - name: run.bat (1회차)
+        shell: cmd
+        run: |
+          cd /d "%W%"
+          call run.bat --no-video < NUL
+          if not exist "%W%\submit_*.zip" exit /b 1
+
+      - name: run.bat (2회차 — 프레임 재사용)
+        shell: cmd
+        run: |
+          cd /d "%W%"
+          call run.bat --no-video < NUL
+          dir /b "%W%\submit_*.zip"
+          for /f %%c in ('dir /b "%W%\submit_*.zip" ^| find /c /v ""') do if %%c LSS 2 exit /b 1
+
+      - name: 한 영상 이어찍기 (자동 분할)
+        run: |
+          $O = "$env:W-one"
+          Copy-Item -Recurse -Force "$env:W" $O
+          Remove-Item -Recurse -Force "$O\.venv", "$O\data\frames", "$O\results", "$O\submit_*.zip" -ErrorAction SilentlyContinue
+          Set-Location "$O\data\raw"
+          "file '20260824_142918.mp4'", "file '20260824_144012.mp4'", "file '20260824_142727.mp4'" | Set-Content -Encoding ascii list.txt
+          ffmpeg -v error -f concat -safe 0 -i list.txt -c copy -an one.mp4
+          if ($LASTEXITCODE) { exit 1 }
+          Remove-Item 2026*.mp4, list.txt
+          $team = "3" + [char]0xC870
+          '{"team": "' + $team + '", "clips": {"cold": {"stem": "one", "T_C": 14.2}, "rt": {"stem": "one", "T_C": 27.2}, "hot": {"stem": "one", "T_C": 54.7}}}' | Set-Content -Encoding utf8 clips.json
+          Set-Location $O
+          cmd /c "run.bat --no-video < NUL"
+          if (!(Test-Path "$O\submit_*.zip")) { exit 1 }
+
+      - name: 결과 모으기 (프레임이 들어 있으니 암호화해서 올린다)
         if: always()
-        run: Get-Content results/summary.txt
+        env:
+          PASS: ${{ secrets.CI_DATA_PASS }}
+        run: |
+          $ossl = @("C:\Program Files\Git\usr\bin\openssl.exe", "C:\Program Files\OpenSSL\bin\openssl.exe", "C:\Program Files\Git\mingw64\bin\openssl.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          New-Item -ItemType Directory -Force tmp, up | Out-Null
+          foreach ($p in @(@("sep", $env:W), @("one", "$env:W-one"))) {
+            $tag = $p[0]; $dir = $p[1]
+            Get-Content -Encoding utf8 -ErrorAction SilentlyContinue "$dir\results\summary.txt"
+            $i = 0
+            Get-ChildItem -ErrorAction SilentlyContinue "$dir\submit_*.zip" | ForEach-Object {
+              Write-Output "$tag $($_.Name) $($_.Length)"
+              Copy-Item $_.FullName "tmp\$tag.$i.zip"; $i++
+            }
+            if (Test-Path "$dir\results") { Compress-Archive -Path "$dir\results" -DestinationPath "tmp\$tag.results.zip" }
+          }
+          Get-ChildItem tmp\*.zip | ForEach-Object {
+            & $ossl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in $_.FullName -out ("up\" + $_.Name + ".enc") -pass env:PASS
+          }
+          Get-ChildItem up
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: results-windows
-          path: |
-            results/
-            submit_*.zip
+          name: results-windows-enc
+          path: up/
+          retention-days: 3
           if-no-files-found: warn
