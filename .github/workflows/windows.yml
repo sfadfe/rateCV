@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fix-ascii
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
@@ -62,7 +62,7 @@ jobs:
         shell: cmd
         run: |
           cd /d "%W%"
-          call run.bat --no-video < NUL
+          call run.bat < NUL
           set RC=%errorlevel%
           copy /y "%W%\results\run_log.txt" "%W%-run1_log.txt"
           if not "%RC%"=="0" exit /b %RC%
@@ -72,7 +72,7 @@ jobs:
         shell: cmd
         run: |
           cd /d "%W%"
-          call run.bat --no-video < NUL
+          call run.bat < NUL
           if errorlevel 1 exit /b 1
           dir /b "%W%\submit_*.zip"
           for /f %%c in ('dir /b "%W%\submit_*.zip" ^| find /c /v ""') do if %%c LSS 2 exit /b 1
@@ -90,9 +90,24 @@ jobs:
           $team = "3" + [char]0xC870
           '{"team": "' + $team + '", "clips": {"cold": {"stem": "one", "T_C": 14.2}, "rt": {"stem": "one", "T_C": 27.2}, "hot": {"stem": "one", "T_C": 54.7}}}' | Set-Content -Encoding utf8 clips.json
           Set-Location $O
-          cmd /c "run.bat --no-video < NUL"
+          cmd /c "run.bat < NUL"
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           if (!(Test-Path "$O\submit_*.zip")) { exit 1 }
+
+      - name: 제출 zip 안에 mp4 없는지
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $bad = 0
+          Get-ChildItem "$env:W\submit_*.zip", "$env:W-one\submit_*.zip" | ForEach-Object {
+            $z = [System.IO.Compression.ZipFile]::OpenRead($_.FullName)
+            $n = @($z.Entries).Count
+            $v = @($z.Entries | Where-Object { $_.FullName -match '\.(mp4|mov|avi|mkv)$' })
+            $z.Dispose()
+            Write-Output "$($_.Name) entries=$n video=$($v.Count)"
+            $v | ForEach-Object { Write-Output "  $($_.FullName)" }
+            $bad += $v.Count
+          }
+          if ($bad) { exit 1 }
 
       - name: 결과 모으기 (프레임이 들어 있으니 암호화해서 올린다)
         if: always()
