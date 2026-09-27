@@ -109,7 +109,6 @@ Done.
 | 옵션 | 뜻 |
 | --- | --- |
 | `run.bat --force` | 프레임을 지우고 처음부터 다시 뽑는다 |
-| `run.bat --no-video` | zip 에 영상을 넣지 않는다 (용량이 문제일 때) |
 
 ## 5. 결과 읽는 법
 
@@ -135,7 +134,7 @@ Done.
 | `manifest.json` | 파일별 sha256 과 서명. 파일 하나라도 바뀌면 서명이 안 맞는다 |
 | `results/` (CSV, summary, 그래프, 오버레이, provenance) | 결과와 그 기록 |
 | `data/frames/` | 측정에 쓰인 프레임. 이 프레임으로 다시 돌리면 k·Ea 가 똑같이 나온다 |
-| `data/raw/clips.json` + 영상 | 조건과 원본 |
+| `data/raw/clips.json` | 조건 |
 
 하지 말 것:
 

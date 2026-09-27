@@ -109,7 +109,6 @@ cd rateCV
 | 옵션 | 뜻 |
 | --- | --- |
 | `run.bat --force` | 프레임을 지우고 처음부터 다시 뽑는다 |
-| `run.bat --no-video` | zip 에 영상을 넣지 않는다 (용량이 문제일 때) |
 
 돌린 뒤 **`results\overlays\cal_*.jpg` 를 열어 눈금이 맞는지 확인한다.**
 분홍 격자선이 유리에 찍힌 숫자와 겹쳐야 한다.
@@ -129,7 +128,7 @@ cd rateCV
 | `results/overlays/` | 검출선을 그려 넣은 검토용 이미지 |
 | `results/provenance.jsonl` | 단계별 서명 기록 |
 | `results/run_log.txt` | 단계별 전체 출력. 오류 메시지도 여기 있다 |
-| `submit_*.zip` | 결과, 그래프, 프레임, 영상, `manifest.json` (파일별 sha256 과 서명) |
+| `submit_*.zip` | 결과, 그래프, 프레임, `manifest.json` (파일별 sha256 과 서명) |
 
 zip 은 그대로 둔다. 풀어서 다시 묶거나 안의 파일을 바꾸면 서명이 안 맞는다.
 

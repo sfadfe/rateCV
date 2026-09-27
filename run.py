@@ -76,7 +76,7 @@ with LOG.open("w", encoding="utf-8") as log:
         args = [sys.executable, str(prog(step))]
         if step == "extract" and "--force" in sys.argv[1:]:
             args.append("--force")
-        if step == "pack" and "--no-video" in sys.argv[1:]:
+        if step == "pack":
             args.append("--no-video")
         print(f"{step:<8} ...", end=" ", flush=True)
         log.write(f"\n===== {step} =====\n")
