@@ -34,6 +34,14 @@ jobs:
           Copy-Item -Recurse -Force * "$env:W"
           Get-ChildItem "$env:W"
 
+      # main 의 run.bat 은 LF 라 cmd 가 chcp 65001 뒤 한글 줄에서 명령을 잘라 먹는다. 시험: CRLF 로 바꾸면 되는지.
+      - name: run.bat CRLF 로 (시험)
+        run: |
+          $f = "$env:W\run.bat"
+          $t = [IO.File]::ReadAllText($f) -replace "`r?`n", "`r`n"
+          [IO.File]::WriteAllText($f, $t, (New-Object Text.UTF8Encoding $false))
+          Format-Hex $f | Select-Object -First 2
+
       - name: 영상 받기·풀기
         env:
           GH_TOKEN: ${{ github.token }}
