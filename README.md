@@ -103,6 +103,7 @@ cd rateCV
 
 - 처음엔 `.venv` 를 만들고 패키지를 받느라 몇 분 걸린다.
 - 그다음 extract → measure → analyze → verify → pack 이 차례로 돈다.
+- 창에는 단계별 `ok` 와 결과 표만 찍힌다. 단계별 전체 출력은 `results\run_log.txt`.
 - 끝나면 `results\` 와 이 폴더의 `submit_*.zip` 이 생긴다.
 
 | 옵션 | 뜻 |
@@ -119,6 +120,7 @@ cd rateCV
 
 | 경로 | 내용 |
 | --- | --- |
+| `results/results.txt` | 클립별 `k`, R², RMSE, 전체 `Ea`, `A` (영문 표) |
 | `results/summary.txt` | 클립별 `k`, R², RMSE, 전체 `Ea` |
 | `results/timeseries.csv` | 프레임별 거품/액면 측정값 |
 | `results/fig/fig_ln.png` | ln h – t |
@@ -126,6 +128,7 @@ cd rateCV
 | `results/fig/fig_arrhenius.png` | ln k – 1/T |
 | `results/overlays/` | 검출선을 그려 넣은 검토용 이미지 |
 | `results/provenance.jsonl` | 단계별 서명 기록 |
+| `results/run_log.txt` | 단계별 전체 출력. 오류 메시지도 여기 있다 |
 | `submit_*.zip` | 결과, 그래프, 프레임, 영상, `manifest.json` (파일별 sha256 과 서명) |
 
 zip 은 그대로 둔다. 풀어서 다시 묶거나 안의 파일을 바꾸면 서명이 안 맞는다.
@@ -134,10 +137,12 @@ zip 은 그대로 둔다. 풀어서 다시 묶거나 안의 파일을 바꾸면 
 
 ## 7. 자주 나는 오류
 
+창에 `FAILED` 가 뜨면 `results\run_log.txt` 맨 아래 메시지를 보고 아래 표에서 찾는다.
+
 | 메시지 | 해결 |
 | --- | --- |
-| `Python 3.12 가 없다` | 1-2 를 다시 하고 `python --version` 확인 |
-| `ffmpeg 가 없다` | 1-3 을 다시 하고 창을 새로 연다 |
+| `Python 3.12 not found` | 1-2 를 다시 하고 `python --version` 확인 |
+| `ffmpeg not found` | 1-3 을 다시 하고 창을 새로 연다 |
 | `영상 없음: ...\data\raw` | `data\raw` 에 영상을 넣는다 |
 | `clips.json 를 못 읽었다` | 따옴표·쉼표·중괄호를 예시대로 |
 | `clips.json 에 적힌 원본이 ... 에 없다` | `stem` 과 실제 파일 이름을 맞춘다 |

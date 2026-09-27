@@ -84,25 +84,26 @@ submit_*.zip          ← 실행이 끝나면 생긴다
 - 끝나면 창에 아래가 찍힌다.
 
 ```
-===== analyze =====
-54.7 °C: t0=4s  h0=79.5 mL  k=2.8562e-02 s^-1  n=68  R2=0.9534  RMSE=0.1239  오검출=9 보간=7
-27.2 °C: ...
-14.2 °C: ...
-Ea = 32779.1 J/mol = 32.78 kJ/mol
-Arrhenius R2 = 0.9642
-provenance seq=3 tag=a1b2c3d4...
+extract  ... ok (72 s)
+measure  ... ok (8 s)
+analyze  ... ok (1 s)
+verify   ... ok (0 s)
+pack     ... ok (1 s)
 
-===== verify =====
-seq=1 extract ...
-  ok 서명
-  ok 체인
-  ok 코드 bin/extract.pyc
-  ...
-3 항목 — 전부 통과
+clip      T_C     T_K  k (1/s)       t0 (s) h0 (mL)    n  R2      RMSE(ln h) dropped filled
+hot      54.7  327.85  2.856187e-02       4   79.45   68  0.9534  0.1239           9      7
+rt       27.2  300.35  7.362674e-03      37   83.73  121  0.9865  0.0301           6      4
+cold     14.2  287.35  5.548581e-03      26   97.37  121  0.9829  0.0256           0      0
 
-===== pack =====
-submit_이름_20260916-1030_ab12cd34.zip  1180 MB  파일 542개
-manifest tag=ab12cd34...
+Ea             = 32.78 kJ/mol  (32779.1 J/mol)
+A              = 4.464884e+03 1/s
+Arrhenius R2   = 0.9642
+Arrhenius RMSE = 0.1353  (ln k)
+
+Done.
+  results : results/results.txt
+  log     : results/run_log.txt
+  submit  : submit_*.zip in this folder
 ```
 
 | 옵션 | 뜻 |
@@ -114,12 +115,14 @@ manifest tag=ab12cd34...
 
 | 파일 | 내용 |
 | --- | --- |
+| `results/results.txt` | 온도별 k, R², RMSE, 전체 Ea, A (영문 표) |
 | `results/summary.txt` | 온도별 k, R², RMSE, 전체 Ea |
 | `results/timeseries.csv` | 프레임별 거품·액면 높이 |
 | `results/fig/*.png` | ln h – t, 적합 직선, 아레니우스 그래프 |
 | `results/overlays/cal_*.jpg` | 눈금 자동 인식 결과. 분홍 격자가 눈금 숫자와 겹쳐야 정상 |
 | `results/overlays/ov_*.jpg` | 검출된 거품선(노랑)·액면(빨강) |
 | `results/provenance.jsonl` | 단계별 서명 기록 |
+| `results/run_log.txt` | 단계별 전체 출력. 오류 메시지도 여기 있다 |
 
 **`results/overlays/cal_*.jpg` 는 반드시 눈으로 확인해라.** 격자가 눈금과 어긋나면 그 클립은 못 쓴다 (다시 찍어야 한다).
 
@@ -145,10 +148,12 @@ manifest tag=ab12cd34...
 
 ## 7. 오류
 
+창에 `FAILED` 가 뜨면 `results/run_log.txt` 맨 아래 메시지를 보고 아래 표에서 찾는다.
+
 | 메시지 | 해결 |
 | --- | --- |
-| `Python 3.12 가 없다` | 1번. 3.12 를 깔고 `python --version` 확인 |
-| `ffmpeg 가 없다` | 1번. 깔고 나서 창을 새로 연다 |
+| `Python 3.12 not found` | 1번. 3.12 를 깔고 `python --version` 확인 |
+| `ffmpeg not found` | 1번. 깔고 나서 창을 새로 연다 |
 | `영상 없음: ...data\raw` | 3번. 영상을 넣는다 |
 | `clips.json 를 못 읽었다` | 3번. 따옴표·쉼표·중괄호를 예시대로 |
 | `clips.json 에 적힌 원본이 ... 없다` | `stem` 과 실제 파일 이름(확장자 빼고)을 똑같이 |
